@@ -3,33 +3,25 @@
 namespace CodeDelivery\Http\Middleware;
 
 use Closure;
-use Illuminate\Support\Facades\Auth;
+use CodeDelivery\Repositories\UserRepository;
+use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 
-class CheckRole
+class OAuthCheckRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return mixed
-     */
-    /**
-     * Handle an incoming request.
-     *
-     * @param  IlluminateHttpRequest  $request
-     * @param  Closure  $next
-     * @return mixed
-     */
+    private $userRepository;
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     public function handle($request, Closure $next, $role) //aqui adicionamos um parametro para o middleware
     {
+        $id = Authorizer::getResourceOwnerId();
 
-        if(!Auth::check()) {
-            return redirect('/auth/login');
-        }
-
-        if(Auth::user()->role <> $role) { //se a role do usuário autenticado bate com a $role que passamos
-            return redirect('/auth/login');
+        $user = $this->userRepository->find($id);
+       
+        if($user->role != $role){
+            abort(403, 'Acesso Negado!');
         }
 
         return $next($request);

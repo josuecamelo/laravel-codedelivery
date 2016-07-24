@@ -30,8 +30,8 @@ use CodeDelivery\Services\ClientService;
     }
 
     public function edit($id){
-        $client = $this->repository->find($id);
-        return view('admin.clients.edit', compact('client'));
+        $Client = $this->repository->find($id);
+        return view('admin.clients.edit', compact('Client'));
     }
 
     public function update(Requests\AdminClientRequest $request, $id){

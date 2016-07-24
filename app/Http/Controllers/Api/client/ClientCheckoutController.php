@@ -6,16 +6,18 @@
  * Time: 16:17
  */
 
-namespace CodeDelivery\Http\Controllers;
+namespace CodeDelivery\Http\Controllers\Api\Client;
 
+use CodeDelivery\Http\Controllers\Controller;
 use CodeDelivery\Http\Requests;
 use CodeDelivery\Repositories\OrderRepository;
 use CodeDelivery\Repositories\ProductRepository;
 use CodeDelivery\Repositories\UserRepository;
 use CodeDelivery\Services\OrderService;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 
-class CheckoutController extends Controller
+class ClientCheckoutController extends Controller
 {
     /**
      * @var OrderRepository
@@ -32,44 +34,72 @@ class CheckoutController extends Controller
     /**
      * @var OrderService
      */
-    private $service;
+    private $orderService;
 
-    public function __construct(OrderRepository $orderRepository,
-                                UserRepository $userRepository,
-                                ProductRepository $productRepository, OrderService $service)
+    private $whith = ['client','cupom','items'];
+    /**
+     * CheckoutController constructor.
+     * @param OrderRepository $orderRepository
+     * @param UserRepository $userRepository
+     * @param ProductRepository $productRepository
+     */
+    public function __construct(
+        OrderRepository $orderRepository,
+        UserRepository $userRepository,
+        ProductRepository $productRepository,
+        OrderService $orderService
+    )
     {
         $this->orderRepository = $orderRepository;
         $this->userRepository = $userRepository;
         $this->productRepository = $productRepository;
-        $this->service = $service;
+        $this->orderService = $orderService;
     }
 
     public function index()
     {
-        $clientId = $this->userRepository->find(Auth::user()->id)->client->id;
-
-        $orders = $this->orderRepository->scopeQuery(function($query) use($clientId) {
+        $id = Authorizer::getResourceOwnerId();
+        $clientId = $this->userRepository->find($id)->client->id;
+        $orders = $this->orderRepository->with(['items'])->scopeQuery(function($query) use($clientId) {
             return $query->where('client_id','=',$clientId);
         })->paginate();
 
-        return view('customer.order.index',compact('orders'));
+        return $orders;
+
+        /*$orders = $this->orderRepository->
+        skipPresenter(false)->with($this->whith)->scopeQuery(function($query) use ($clientId){
+            return $query->where('client_id','=',$clientId);
+        })->paginate(5);
+        return $orders;*/
     }
 
-
-    public function create()
+    public function store(Request $request)
     {
-        $products = $this->productRepository->lista();
-
-        return view('customer.order.create', compact('products'));
-    }
-
-    public function store(Requests\CheckoutRequest $request)
-    {
+        $id = Authorizer::getResourceOwnerId();
         $data = $request->all();
-        $clientId = $this->userRepository->find(Auth::user()->id)->client->id;
+        $clientId = $this->userRepository->find($id)->client->id;
         $data['client_id'] = $clientId;
-        $this->service->create($data);
+        $o = $this->orderService->create($data);
 
-        return redirect()->route('customer.order.index');
+        return $this->orderRepository
+            ->with(['items'])
+            ->find($o->id);
+    }
+
+    public function show($id)
+    {
+        $idUser = Authorizer::getResourceOwnerId();
+        /*return $this->orderRepository
+            ->skipPresenter(false)
+            ->with($this->whith)
+            ->findWhere(['client_id'=>$idUser,'id'=>$id]);*/
+
+       $o =  $this->orderRepository
+            ->with(['client', 'items', 'cupom'])
+            ->find($id);
+        $o->items->each(function($item){
+            $item->product;
+        });
+        return $o;
     }
 }
