@@ -76,7 +76,12 @@ Route::post('oauth/access_token', function() {
 
 
 Route::group(["prefix" => "api", "middleware" => "oauth", "as" => "api."], function () {
-    Route::group(["prefix" => "client", "middleware" => "oauth.checkrole:client", "as" => "Client."], function () {
+    //Fase 3
+    Route::get('teste', function(){
+        return 'Teste Fase 3';
+    });
+
+    /*Route::group(["prefix" => "client", "middleware" => "oauth.checkrole:client", "as" => "Client."], function () {
         Route::resource("order", 'Api\Client\ClientCheckoutController', ['except' => ['create', 'edit', 'destroy']]);
         Route::get("products", 'Api\Client\ClientProductController@index');
     });
@@ -84,5 +89,5 @@ Route::group(["prefix" => "api", "middleware" => "oauth", "as" => "api."], funct
     Route::group(["prefix" => "deliveryman", "middleware" => "oauth.checkrole:deliveryman", "as" => "deliveryman."], function () {
         Route::resource("order", 'Api\Deliveryman\DeliverymanCheckoutController', ['except' => ['create', 'edit', 'destroy', 'store']]);
         Route::patch("order/{id}/update-status", ["as" => "orders.update.status", "uses" => 'Api\Deliveryman\DeliverymanCheckoutController@updateStatus']);
-    });
+    });*/
 });
