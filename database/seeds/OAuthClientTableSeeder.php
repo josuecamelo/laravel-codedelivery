@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Database\Seeder;
-
+use Carbon\Carbon;
 
 class OAuthClientTableSeeder extends Seeder
 {
