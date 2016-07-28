@@ -81,6 +81,9 @@ Route::group(["prefix" => "api", "middleware" => "oauth", "as" => "api."], funct
         return 'Teste Fase 3';
     });
 
+    // Rota com dados do usuário logado
+    Route::get('/authenticated', ['as' => 'authenticated', 'uses' => 'Api\UserController@authenticated']);
+
     Route::group(["prefix" => "client", "middleware" => "oauth.checkrole:client", "as" => "Client."], function () {
         Route::resource("order", 'Api\Client\ClientCheckoutController', ['except' => ['create', 'edit', 'destroy']]);
         Route::get("products", 'Api\Client\ClientProductController@index');
