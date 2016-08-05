@@ -15,6 +15,7 @@ use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 
 class UserController extends Controller
 {
+    
     /**
      * @var UserRepository
      */
@@ -27,6 +28,10 @@ class UserController extends Controller
     public function authenticated()
     {
         $id = Authorizer::getResourceOwnerId();
-        return $this->userRepository->with('client')->find($id);
+        //return $this->userRepository->with('client')->find($id);
+        return $this->repository
+            ->skipPresenter(false)
+            ->with('client')->find($id);
+
     }
 }

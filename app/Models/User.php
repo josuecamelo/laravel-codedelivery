@@ -23,10 +23,9 @@ class User extends Model implements Transformable, AuthenticatableContract, Auth
     protected $table = 'users';
     protected $fillable = ['name', 'email', 'password'];
     protected $hidden = ['password', 'remember_token'];
+    protected $skipPresenter = true;
 
     public function client(){
         return $this->hasOne(Client::class);
     }
-
-    
 }
